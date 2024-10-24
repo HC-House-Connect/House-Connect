@@ -170,6 +170,7 @@ export const useSignInSocial = () => {
     onMutate: () => createToast('signin', '로그인 시도 중...'),
     onError: error => {
       errorToast('signin', error.message);
+      alert(error)
     },
   });
   return { signInSocial, isSignInSocial };
