@@ -4,15 +4,16 @@ import { NavLink } from 'react-router-dom';
 import Container from '@/components/atoms/Container';
 import Typography from '@/components/atoms/Typography';
 import cn from '@/libs/cn';
+import { routePaths } from '@/constants/route';
 
 type GNBProps = ComponentProps<'div'>;
 
 // chat, lounge, house와 같은 NavLink를 관장하는 component
 export default function GNB({ className }: GNBProps) {
   const navItems = [
-    { name: 'chat', path: '/chat' },
-    { name: 'lounge', path: '/lounge' },
-    { name: 'house', path: '/house' },
+    { name: 'house', path: routePaths.house },
+    { name: 'lounge', path: routePaths.lounge },
+    { name: 'chat', path: routePaths.chat },
   ];
 
   return (

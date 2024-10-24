@@ -66,6 +66,9 @@ import Search from '@/assets/icons/search.svg?react';
 import Edit from '@/assets/icons/edit.svg?react';
 import Delete from '@/assets/icons/delete.svg?react';
 import EditAvatar from '@/assets/icons/edit_avatar.svg?react';
+import DownArrow from '@/assets/icons/down-arrow.svg?react';
+import Filter from '@/assets/icons/filter.svg?react';
+import Add from '@/assets/icons/add.svg?react';
 import { IconType } from '@/types/icon.type';
 import cn from '@/libs/cn';
 
@@ -392,6 +395,15 @@ const IconSVG: { [key in IconType]: FC<SVGProps<SVGSVGElement>> } = {
   ),
   'edit-avatar': ({ className, ...others }) => (
     <EditAvatar className={cn('w-6 h-[1.375rem]', className)} {...others} />
+  ),
+  'down-arrow': ({ className, ...others }) => (
+    <DownArrow className={cn('w-[3rem]', className)} {...others} />
+  ),
+  filter: ({ className, ...others }) => (
+    <Filter className={cn('w-[12px] h-auto', className)} {...others} />
+  ),
+  add: ({ className, ...others }) => (
+    <Add className={cn('size-[12px]', className)} {...others} />
   ),
 };
 

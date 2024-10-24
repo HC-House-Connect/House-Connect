@@ -10,6 +10,7 @@ const HOUSE_KEYS = {
   ) => [...HOUSE_KEYS.ALL, 'house_bookmark', userId, houseId] as const,
   HOUSE_COMMENT_REPLY: (houseId: string | undefined) =>
     [...HOUSE_KEYS.ALL, 'comment', houseId] as const,
+  HOUSE_LIST: () => [...HOUSE_KEYS.ALL, 'list'] as const,
 };
 
 export default HOUSE_KEYS;

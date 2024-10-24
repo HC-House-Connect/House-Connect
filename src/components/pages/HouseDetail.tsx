@@ -4,7 +4,7 @@ import { useRecoilValue } from 'recoil';
 
 import HouseDetailTemplate, {
   HouseData,
-} from '@/components/templates/HouseDetail/HouseDetailTemplate';
+} from '@/components/templates/House/HouseDetail/HouseDetailTemplate';
 import { useHouseBookMark, houseDetailQuery } from '@/hooks/useHouseDetail';
 import { UserAtom } from '@/stores/auth.store';
 import CommentTemplate from '@/components/templates/CommentTemplate';

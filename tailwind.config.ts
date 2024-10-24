@@ -11,9 +11,9 @@ export default {
         laptop: '1024px',
         tablet: '768px',
         's-tablet': '576px',
+        screen480: '480px',
         mobile: '430px',
         screen640: '640px',
-        screen1140: '1140px',
       },
       colors: {
         bg: '#FFFFFF',
@@ -32,6 +32,9 @@ export default {
         'active-fill': '#4C2A1C',
         'active-outline': '#F7E9DE',
         focus: '#EFCBA1',
+        'bg-beige': '#FCF7E7',
+        'bg-orange': '#FFD7C6',
+        point1: '#FF5F3C',
       },
       fontSize: {
         Head1: ['3rem', { fontWeight: 700 }],
@@ -68,6 +71,7 @@ export default {
       boxShadow: {
         avatar: 'rgba(0, 0, 0, 0.25) 0px 0px 4px 0px',
         'avatar-active': 'rgba(0, 0, 0, 0.3) 0px 0px 4px 3px',
+        badge: 'rgba(0, 0, 0, 0.16) 0px 0px 8px 0px',
       },
     },
   },

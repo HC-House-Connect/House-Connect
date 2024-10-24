@@ -3,7 +3,7 @@ import Badge from '@/components/atoms/Badge';
 import Container from '@/components/atoms/Container';
 import Typography from '@/components/atoms/Typography';
 import BadgeIcon from '@/components/molecules/BadgeIcon';
-import { HouseData } from '@/components/templates/HouseDetail/HouseDetailTemplate';
+import { HouseData } from '@/components/templates/House/HouseDetail/HouseDetailTemplate';
 import { genderInfo, petInfo } from '@/constants/profileDetailInfo';
 
 type UserInfoCardProps = {

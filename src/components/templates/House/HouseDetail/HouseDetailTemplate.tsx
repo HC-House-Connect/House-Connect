@@ -26,10 +26,10 @@ import {
   UserLifeStyleType,
   UserMateStyleType,
 } from '@/components/pages/HouseRegister';
-import ImageCarouselModal from '@/components/templates/HouseDetail/ImageCarouselModal';
-import HouseImageTemplate from '@/components/templates/HouseDetail/HouseImageTemplate';
-import HouseInfoCard from '@/components/templates/HouseDetail/HouseInfoCard';
-import UserInfoCard from '@/components/templates/HouseDetail/UserInfoCard';
+import ImageCarouselModal from '@/components/templates/House/HouseDetail/ImageCarouselModal';
+import HouseImageTemplate from '@/components/templates/House/HouseDetail/HouseImageTemplate';
+import HouseInfoCard from '@/components/templates/House/HouseDetail/HouseInfoCard';
+import UserInfoCard from '@/components/templates/House/HouseDetail/UserInfoCard';
 import { supabase } from '@/libs/supabaseClient';
 import SupabaseCustomError from '@/libs/supabaseCustomError';
 import { routePaths } from '@/constants/route';

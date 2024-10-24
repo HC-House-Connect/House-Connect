@@ -29,6 +29,7 @@ import {
 } from '@/types/auth.type';
 import { createToast, errorToast, successToast } from '@/libs/toast';
 import { ShowVerificationAtom } from '@/stores/sign.store';
+import getRedirectURL from '@/libs/getRedirectURL';
 
 const preProcessingUserData = (
   data: AuthTokenResponsePassword | AuthResponse,
@@ -156,24 +157,14 @@ export const useSignInSocial = () => {
     import.meta.env.MODE === 'development' &&
     process.env.NODE_ENV === 'development';
 
-  const getURL = () => {
-    let url: string =
-      import.meta.env.VITE_PRODUCTION_URL ??
-      import.meta.env.VITE_VERCEL_URL ??
-      'http://localhost:3000';
-
-    url = url.startsWith('http') ? url : `https://${url}`;
-    url = url.endsWith('/') ? url : `${url}/`;
-
-    return url;
-  };
-
   const { mutate: signInSocial, isPending: isSignInSocial } = useMutation({
     mutationFn: async (payload: SocialType) =>
       supabase.auth.signInWithOAuth({
         provider: payload,
         options: {
-          redirectTo: isDev ? 'http://localhost:3000' : getURL(),
+          redirectTo: isDev
+            ? `${getRedirectURL().devURL}${routePaths.sign.slice(1)}`
+            : `${getRedirectURL().prodURL}${routePaths.sign.slice(1)}`,
         },
       }),
     onMutate: () => createToast('signin', '로그인 시도 중...'),

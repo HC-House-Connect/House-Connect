@@ -42,11 +42,24 @@ export default function Header({ className, isLogin, ...others }: Props) {
 
   const headerConfig = getHeaderConfig(location.pathname);
 
+  const isHouseListPath =
+    isRoutePathMatched(location.pathname, 'house') ||
+    isRoutePathMatched(location.pathname, 'root');
+
+  if (isHouseListPath) {
+    headerConfig.gnb = !!isOverSTabletBreakPoint;
+  }
+
   return (
     <>
       {(isOverSTabletBreakPoint || headerConfig.isHeaderExistUnderSTablet) && (
         <header
-          className={cn(commonHeaderStyle, 'top-0 left-0 bg-bg', className)}
+          className={cn(
+            commonHeaderStyle,
+            'top-0 left-0 bg-bg',
+            isHouseListPath && (isOverSTabletBreakPoint ? '' : 'h-[6rem]'),
+            className,
+          )}
           {...others}
         >
           <Container.FlexRow className="mx-auto w-full max-w-[79rem] items-center justify-between px-8">
@@ -68,7 +81,8 @@ export default function Header({ className, isLogin, ...others }: Props) {
           <GNB
             className={cn(
               commonHeaderStyle,
-              'bottom-0 left-0 justify-center bg-bg',
+              isHouseListPath && 'h-auto py-7 bg-bg',
+              'bottom-0 left-0 justify-center',
             )}
           />
         )}

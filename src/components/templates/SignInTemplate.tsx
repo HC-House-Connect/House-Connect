@@ -25,6 +25,7 @@ import {
 import { IsNotVerifiedAtom } from '@/stores/auth.store';
 import FormItem from '@/components/molecules/FormItem';
 import { routePaths } from '@/constants/route';
+
 export default function SignInTemplate() {
   const Form = FormProvider;
   const isNotVerified = useRecoilValue(IsNotVerifiedAtom);
@@ -69,7 +70,7 @@ export default function SignInTemplate() {
   const onClickVisible = () => setPasswordVisible(prev => !prev);
 
   return (
-    <Container.FlexCol className="gap-[3.75rem]">
+      <>
       <Container.FlexCol className="w-full">
         <Container.FlexCol className="mb-[4rem] gap-[1.25rem] text-brown">
           <Typography.Head2>House-Connect</Typography.Head2>
@@ -133,9 +134,11 @@ export default function SignInTemplate() {
           </Form>
         </Container.FlexCol>
       </Container.FlexCol>
-      <Container.FlexCol className="gap-[2.25rem]">
+      <Container.FlexCol className="gap-[2.25rem] pb-5">
         <div className="flex">
-          <Divider.Row>SNS 계정으로 로그인</Divider.Row>
+          <Divider.Row className="[&_span]:text-sm">
+            SNS 계정으로 로그인
+          </Divider.Row>
         </div>
         <Container.FlexCol className="gap-y-5">
           <IconButton.Ghost
@@ -165,6 +168,6 @@ export default function SignInTemplate() {
           </IconButton.Ghost>
         </Container.FlexCol>
       </Container.FlexCol>
-    </Container.FlexCol>
+      </>
   );
 }

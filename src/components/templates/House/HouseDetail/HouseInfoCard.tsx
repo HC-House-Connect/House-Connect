@@ -4,7 +4,7 @@ import Divider from '@/components/atoms/Divider';
 import Icon from '@/components/atoms/Icon';
 import Typography from '@/components/atoms/Typography';
 import BadgeIcon from '@/components/molecules/BadgeIcon';
-import { HouseData } from '@/components/templates/HouseDetail/HouseDetailTemplate';
+import { HouseData } from '@/components/templates/House/HouseDetail/HouseDetailTemplate';
 import {
   floorInfo,
   genderInfo,

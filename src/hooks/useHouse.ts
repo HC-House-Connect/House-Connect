@@ -1,13 +1,14 @@
-/* eslint-disable consistent-return */
 import {
-  infiniteQueryOptions,
+  useInfiniteQuery,
   useMutation,
   useQueries,
   useQuery,
   UseQueryResult,
 } from '@tanstack/react-query';
-import { FileObject } from '@supabase/storage-js';
 import { useNavigate } from 'react-router-dom';
+/* eslint-disable consistent-return */
+import { FileObject } from '@supabase/storage-js';
+
 import { routePaths } from '@/constants/route';
 import {
   createToast,
@@ -367,22 +368,24 @@ export const useDeleteHousePost = () => {
 };
 
 // houseList hooks
-export const useHouseList = () =>
-  infiniteQueryOptions({
-    queryKey: ['house', 'list', 'recent'],
-    queryFn: async ({ pageParam }) =>
-      supabase
-        .from('house')
-        .select(
-          'id, representative_img, region, house_appeal, house_type, rental_type, region, district, term, deposit_price, monthly_price',
-          { count: 'exact' },
-        )
-        // 임시 저장 제외
-        .eq('temporary', 1)
-        .range(pageParam * 12, (pageParam + 1) * 11),
+const fetchHouseList = async ({ pageParam = 0 }) => {
+  const { data, error } = await supabase
+    .from('house')
+    .select(
+      'id, representative_img, region, district, house_appeal, house_type, rental_type, term, deposit_price, monthly_price, user_id',
+    )
+    .eq('temporary', 1)
+    .range(pageParam * 12, pageParam * 12 + 11);
+
+  if (error) throw new Error(error.message);
+  return { data, nextPage: pageParam + 1, hasMore: data.length !== 0 };
+};
+
+export const useInfiniteHouseList = () =>
+  useInfiniteQuery({
+    queryKey: HOUSE_KEYS.HOUSE_LIST(),
+    queryFn: fetchHouseList,
     initialPageParam: 0,
-    getNextPageParam: (lastPage, _allPages, lastPageParam) =>
-      (lastPage.count as number) - (lastPageParam + 1) * 12 > 0
-        ? lastPageParam + 1
-        : undefined,
+    getNextPageParam: lastPage =>
+      lastPage.hasMore ? lastPage.nextPage : undefined,
   });

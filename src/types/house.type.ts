@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { SignUpProfileForm } from '@/types/signUp.type';
+
 export const HouseForm = z.object({
   house_img: z
     .array(z.string())
@@ -23,7 +25,13 @@ export const HouseForm = z.object({
    * - 3: 단독주택
    * - undefined: 지정되지 않음(초기값)
    */
-  house_type: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)]),
+  house_type: z.preprocess(
+    val => {
+      const numVal = Number(val);
+      return [0, 1, 2, 3].includes(numVal) ? numVal : undefined;
+    },
+    z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)]),
+  ),
   /**
    * ### 집 대여 유형
    * - 0: 상관없음
@@ -32,12 +40,14 @@ export const HouseForm = z.object({
    * - 3: 반 전세
    * - undefined: 지정되지 않음(초기값)
    */
-  rental_type: z.union([
-    z.literal(0),
-    z.literal(1),
-    z.literal(2),
-    z.literal(3),
-  ]),
+  rental_type: z.preprocess(
+    val => {
+      const numVal = Number(val);
+      return [0, 1, 2, 3].includes(numVal) ? numVal : undefined;
+    },
+    z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)]),
+  ),
+
   house_size: z.number({
     invalid_type_error: '공유 주거의 넓이(평 단위)를 숫자로 입력해주세요.',
   }),
@@ -91,6 +101,7 @@ export const HouseForm = z.object({
 });
 
 export type HouseFormType = z.infer<typeof HouseForm>;
+
 const HouseCard = HouseForm.pick({
   representative_img: true,
   house_type: true,
@@ -101,6 +112,25 @@ const HouseCard = HouseForm.pick({
   region: true,
   district: true,
   term: true,
+  user_id: true,
 }).required();
 
 export type HouseCardType = z.infer<typeof HouseCard> & { id: string };
+
+export const HouseListFilterForm = HouseForm.pick({
+  house_type: true,
+  rental_type: true,
+  term: true,
+})
+  .merge(
+    SignUpProfileForm.innerType().innerType().pick({
+      regions: true,
+      deposit_price: true,
+      monthly_rental_price: true,
+      mate_number: true,
+      mate_gender: true,
+    }),
+  )
+  .partial();
+
+export type HouseListFilterType = z.infer<typeof HouseListFilterForm>;

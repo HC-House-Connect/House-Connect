@@ -1,6 +1,7 @@
 import { Outlet, useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { ComponentProps, useEffect } from 'react';
 import { useRecoilValue } from 'recoil';
+
 import { routePaths } from '@/constants/route';
 import cn from '@/libs/cn';
 import Container from '@/components/atoms/Container';
@@ -8,6 +9,22 @@ import Icon from '@/components/atoms/Icon';
 import { SessionAtom } from '@/stores/auth.store';
 import { createToast } from '@/libs/toast';
 import { supabase } from '@/libs/supabaseClient';
+
+export function SignLayoutWrapper({
+  className,
+  children,
+}: ComponentProps<'div'>) {
+  return (
+    <Container.FlexCol
+      className={cn(
+        'size-full max-w-[40rem] justify-center laptop:px-[3.5rem]',
+        className,
+      )}
+    >
+      {children}
+    </Container.FlexCol>
+  );
+}
 
 export default function SignLayoutTemplate() {
   const navigate = useNavigate();
@@ -41,13 +58,13 @@ export default function SignLayoutTemplate() {
       data.subscription.unsubscribe();
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [session]);
+  }, [session, navigate]);
 
   return (
     <>
       <Container
         className={cn(
-          'fixed left-0 top-0 z-[-9999] h-screen w-[51vw] bg-subColor1',
+          'fixed left-0 top-0 z-[-9999] h-screen w-[50vw] bg-transparent laptop:bg-bg-beige',
         )}
       />
       <Container
@@ -55,12 +72,14 @@ export default function SignLayoutTemplate() {
           'fixed right-0 top-0 z-[-9998] h-screen w-[50vw] bg-bg rounded-xl',
         )}
       />
-      <Container className="h-full w-[50%] pl-[4.75rem] pt-[calc(50vh-147px)]">
-        <Icon className="translate-y-[-50%]" type="character" />
-      </Container>
-      <Container className="absolute right-0 w-[50%] pl-[7.125rem]">
-        <Outlet />
-      </Container>
+      <Container.FlexRow className="mx-auto w-full flex-1">
+        <Container.FlexRow className="hidden h-full flex-1 items-center justify-center laptop:flex">
+          <Icon type="character" />
+        </Container.FlexRow>
+        <Container.FlexRow className="w-full flex-1 justify-center">
+          <Outlet />
+        </Container.FlexRow>
+      </Container.FlexRow>
     </>
   );
 }

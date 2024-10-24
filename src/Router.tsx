@@ -14,7 +14,7 @@ import SignUpProfileIntro from '@/components/pages/SignUpProfileIntro';
 import SignUpProfile from '@/components/pages/SignUpProfile';
 import SignIn from '@/components/pages/SignIn';
 import SignUp from '@/components/pages/SignUp';
-import About from '@/components/pages/About';
+// import About from '@/components/pages/About';
 import SignUpProfileOutro from '@/components/pages/SignUpProfileOutro';
 import { IsInitializingSession, SessionAtom } from '@/stores/auth.store';
 import Loading from '@/components/pages/Loading';
@@ -76,7 +76,7 @@ const routes: RouteType[] = [
     children: [
       {
         index: true,
-        element: <About />,
+        element: <HouseList />,
       },
       {
         path: routePaths.chat,

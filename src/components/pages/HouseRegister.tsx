@@ -11,8 +11,8 @@ import { SignUpProfileFormType } from '@/types/signUp.type';
 import Container from '@/components/atoms/Container';
 import Typography from '@/components/atoms/Typography';
 import Carousel from '@/components/organisms/Carousel';
-import HouseRegisterTemplate1 from '@/components/templates/HouseRegister/HouseRegisterTemplate1';
-import HouseRegisterTemplates2 from '@/components/templates/HouseRegister/HouseRegisterTemplates2';
+import HouseRegisterTemplate1 from '@/components/templates/House/HouseRegister/HouseRegisterTemplate1';
+import HouseRegisterTemplates2 from '@/components/templates/House/HouseRegister/HouseRegisterTemplates2';
 import Button from '@/components/atoms/Button';
 import useModal from '@/hooks/useModal';
 import { InputRangeState } from '@/components/molecules/DualInputRange';
@@ -25,7 +25,7 @@ import {
   useFetchProfileData,
   useUserProfileUpdate,
 } from '@/hooks/useHouse';
-import HouseRegisterNavigation from '@/components/templates/HouseRegister/HouseRegisterNavigation';
+import HouseRegisterNavigation from '@/components/templates/House/HouseRegister/HouseRegisterNavigation';
 
 export type UserLifeStyleType = {
   smoking: SignUpProfileFormType['smoking'];

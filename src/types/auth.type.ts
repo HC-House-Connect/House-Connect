@@ -36,7 +36,7 @@ export const SignUpInfo = z.object({
     .min(2, { message: '최소 2글자 이상 입력해주세요.' }),
   birth: z.coerce
     .string({ required_error: '필수 입력 사항입니다.' })
-    .length(6, { message: '주민등록번호 앞 6자리를 입력해주세요.' })
+    .length(6, { message: '6자리를 입력해주세요.' })
     .regex(/^\d+$/, {
       message: '숫자만 입력 가능합니다.',
     })
@@ -58,7 +58,7 @@ export const SignUpInfo = z.object({
     .transform(data => Number(data)),
   gender: z
     .string({ required_error: '필수 입력 사항입니다.' })
-    .length(1, { message: '주민등록번호 뒷자리의 첫번째 숫자를 입력해주세요.' })
+    .length(1, { message: '숫자를 입력해주세요.' })
     .regex(/^[1-4]$/, {
       message: '유효하지 않은 입력입니다.',
     })

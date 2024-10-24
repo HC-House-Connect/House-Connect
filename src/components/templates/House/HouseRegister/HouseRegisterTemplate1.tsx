@@ -16,7 +16,7 @@ import DistrictSelector from '@/components/organisms/districtSelector/DistrictSe
 import BadgeButtons from '@/components/molecules/BadgeButtons';
 import LabelDualInputRange from '@/components/organisms/LabelDualInputRange';
 import FormItem from '@/components/molecules/FormItem';
-import MultiImageForm from '@/components/templates/HouseRegister/MultiImageForm';
+import MultiImageForm from '@/components/templates/House/HouseRegister/MultiImageForm';
 import Input from '@/components/atoms/Input';
 import TextAreaField from '@/components/molecules/TextAreaField';
 import {

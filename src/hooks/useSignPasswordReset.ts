@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+
 import { routePaths } from '@/constants/route';
 import {
   SignPasswordResetType,
@@ -7,30 +8,21 @@ import {
 } from '@/types/auth.type';
 import { supabase } from '@/libs/supabaseClient';
 import { createToast, errorToast, successToast } from '@/libs/toast';
+import getRedirectURL from '@/libs/getRedirectURL';
 
 export const useSignPasswordReset = () => {
   const isDev =
     import.meta.env.MODE === 'development' &&
     process.env.NODE_ENV === 'development';
 
-  const getURL = () => {
-    let url: string =
-      import.meta.env.VITE_PRODUCTION_URL ??
-      import.meta.env.VITE_VERCEL_URL ??
-      'http://localhost:3000';
-
-    url = url.startsWith('http') ? url : `https://${url}`;
-    url = url.endsWith('/') ? url : `${url}/`;
-
-    return url;
-  };
-
   const { mutate: passwordReset, isPending } = useMutation({
     mutationFn: async (payload: SignPasswordResetType) => {
       const { error } = await supabase.auth.resetPasswordForEmail(
         payload.email,
         {
-          redirectTo: isDev ? 'http://localhost:3000' : getURL(),
+          redirectTo: isDev
+            ? `${getRedirectURL().devURL}${routePaths.signUpdatePassword.slice(1)}`
+            : `${getRedirectURL().prodURL}${routePaths.signUpdatePassword.slice(1)}`,
         },
       );
       if (error) throw new Error(error.message);
