@@ -183,7 +183,7 @@ export default function MultiImageForm({
               htmlFor="upload_house_img"
               className="absolute inset-0 mb-0 flex w-full cursor-pointer items-center justify-center rounded-lg bg-brown3"
             >
-              <Icon type="camera" className="size-1/3" />
+              <Icon type="camera" className="size-1/3 pointer-events-none" />
               <Input
                 type="file"
                 id="upload_house_img"
