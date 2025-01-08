@@ -36,18 +36,19 @@ type Template1HiddenState = {
 
 type HouseRegisterTemplate1Prop = {
   userId: string;
-  houseId: string;
-  isEditMode: boolean;
   locationError: boolean;
   setLocationError: React.Dispatch<React.SetStateAction<boolean>>;
+  setImageFiles: React.Dispatch<React.SetStateAction<File[]>>;
+  // eslint-disable-next-line react/require-default-props
+  houseId?: string;
 };
 
 export default function HouseRegisterTemplate1({
   userId,
   houseId,
-  isEditMode,
   locationError,
   setLocationError,
+  setImageFiles,
 }: HouseRegisterTemplate1Prop) {
   const form = useFormContext<
     HouseFormType & UserLifeStyleType & UserMateStyleType
@@ -159,7 +160,7 @@ export default function HouseRegisterTemplate1({
           <MultiImageForm
             userId={userId}
             houseId={houseId}
-            isEditMode={isEditMode}
+            setImageFiles={setImageFiles}
           />
           <HouseFormRow
             title="제목"

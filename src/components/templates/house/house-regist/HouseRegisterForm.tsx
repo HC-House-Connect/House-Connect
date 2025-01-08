@@ -12,8 +12,8 @@ import HouseRegisterTemplate1 from '@/components/templates/house/house-regist/Ho
 import HouseRegisterTemplates2 from '@/components/templates/house/house-regist/HouseRegister2.templates';
 import Button from '@/components/atoms/Button';
 import {
-  useHouseRegist,
-  useHouseUpdate,
+  useRegistHouse,
+  useUpdateHouse,
   useFetchProfileData,
   useUserProfileUpdate,
 } from '@/hooks/useHouse';
@@ -22,6 +22,7 @@ import {
   UserLifeStyleType,
   UserMateStyleType,
 } from '@/components/pages/house/house-regist/HouseRegister';
+import { supabase } from '@/libs/supabaseClient';
 
 export type HouseRegistFormProps = {
   form: UseFormReturn<HouseFormType & UserLifeStyleType & UserMateStyleType>;
@@ -31,9 +32,9 @@ export default function HouseRegisterForm({ form }: HouseRegistFormProps) {
   const Form = FormProvider;
   const userId = useRecoilState(SessionAtom)[0]?.user.id as string;
   const { houseId } = useParams<{ houseId: string }>();
-  const isEditMode = !!houseId;
   const [currentStep, setCurrentStep] = useState(0);
   const [locationError, setLocationError] = useState(false);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
 
   // 사용자 프로필(user_lifestyle, user_mate_style)을 가져와 초기값을 수정
   const { userLifeStyleQuery, userMateStyleQuery } = useFetchProfileData(
@@ -63,9 +64,9 @@ export default function HouseRegisterForm({ form }: HouseRegistFormProps) {
     userMateStyleData,
   ]);
 
-  const { registHouse, isRegistHouse } = useHouseRegist();
+  const { registHouse, isRegisteringHouse } = useRegistHouse();
   const { updateUserProfile } = useUserProfileUpdate();
-  const { updateHouse, isUpdateHouse } = useHouseUpdate();
+  const { updateHouse, isUpdatingHouse } = useUpdateHouse();
 
   const onUpdateProfile = async (
     formData: HouseFormType & UserLifeStyleType & UserMateStyleType,
@@ -93,10 +94,23 @@ export default function HouseRegisterForm({ form }: HouseRegistFormProps) {
     });
   };
 
+  const uploadImages = async (files: File[]) => {
+    await Promise.all(
+      files.map(async file => {
+        const { error } = await supabase.storage
+          .from('images')
+          .upload(`house/${userId}/temp/${file.name}`, file);
+
+        if (error) throw new Error('이미지 업로드 실패');
+      }),
+    );
+  };
+
   const onSaveHouse = async (
     formData: HouseFormType & UserLifeStyleType & UserMateStyleType,
     temporary: 0 | 1,
   ) => {
+    await uploadImages(imageFiles);
     const userStyle = form.getValues();
     const houseImgExcludeRep = formData.house_img.filter(
       imgName => imgName !== formData.representative_img,
@@ -112,11 +126,11 @@ export default function HouseRegisterForm({ form }: HouseRegistFormProps) {
       house_type: formData.house_type,
       rental_type: formData.rental_type,
       floor: formData.floor,
-      house_size: Number(formData.house_size) || 0,
-      room_num: Number(formData.room_num) || 0,
-      deposit_price: Number(formData.deposit_price) || 0,
-      monthly_price: Number(formData.monthly_price) || 0,
-      manage_price: Number(formData.manage_price) || 0,
+      house_size: Number(formData.house_size) || -1,
+      room_num: Number(formData.room_num) || -1,
+      deposit_price: Number(formData.deposit_price) || -1,
+      monthly_price: Number(formData.monthly_price) || -1,
+      manage_price: Number(formData.manage_price) || -1,
       house_appeal: formData.house_appeal,
       term: formData.term,
       describe: formData.describe,
@@ -125,12 +139,11 @@ export default function HouseRegisterForm({ form }: HouseRegistFormProps) {
       user_id: userId,
     };
 
-    if (isEditMode) {
+    if (houseId) {
       updateHouse({ houseData, houseId: houseId as string });
     } else {
       registHouse(houseData);
     }
-
     await onUpdateProfile(userStyle);
   };
 
@@ -166,9 +179,9 @@ export default function HouseRegisterForm({ form }: HouseRegistFormProps) {
       key="houseRegisterTemplate1"
       userId={userId}
       houseId={houseId as string}
-      isEditMode={isEditMode}
       locationError={locationError}
       setLocationError={setLocationError}
+      setImageFiles={setImageFiles}
     />,
     <HouseRegisterTemplates2 key="houseRegisterTemplate2" />,
   ];
@@ -180,7 +193,7 @@ export default function HouseRegisterForm({ form }: HouseRegistFormProps) {
           {/* navigation bar */}
           <HouseRegisterNavigation
             currentStep={currentStep}
-            buttonDisable={isRegistHouse || isUpdateHouse}
+            buttonDisable={isRegisteringHouse || isUpdatingHouse}
             onClickNextCarousel={onClickNextCarousel}
             onClickPrevCarousel={onClickPrevCarousel}
             onClickSaveTemporary={onClickSaveTemporary}
@@ -197,7 +210,7 @@ export default function HouseRegisterForm({ form }: HouseRegistFormProps) {
               <Button.Outline
                 className="ml-6 hidden items-center justify-center rounded-[2rem] px-[1.5rem] py-[0.625rem] s-tablet:flex"
                 onClick={onClickSaveTemporary}
-                disabled={isRegistHouse || isUpdateHouse}
+                disabled={isRegisteringHouse || isUpdatingHouse}
               >
                 <Typography.P1 className="text-brown">임시저장</Typography.P1>
               </Button.Outline>

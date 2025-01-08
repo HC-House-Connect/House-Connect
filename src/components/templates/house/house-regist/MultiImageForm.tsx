@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
-import { uuid } from '@supabase/supabase-js/dist/main/lib/helpers';
-import { useFormContext, useWatch } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 
 import { supabase } from '@/libs/supabaseClient';
-import { createToast } from '@/libs/toast';
+import { HouseFormType } from '@/types/house.type';
 import Icon from '@/components/atoms/Icon';
 import Input from '@/components/atoms/Input';
 import Label from '@/components/atoms/Label';
@@ -12,152 +11,119 @@ import Container from '@/components/atoms/Container';
 import Typography from '@/components/atoms/Typography';
 import IconButton from '@/components/molecules/IconButton';
 import cn from '@/libs/cn';
-import { HouseFormType } from '@/types/house.type';
 
 type MultiImageFormProp = {
   userId: string;
-  houseId: string;
-  isEditMode: boolean;
+  setImageFiles: React.Dispatch<React.SetStateAction<File[]>>;
+  // eslint-disable-next-line react/require-default-props
+  houseId?: string;
 };
+
+const IMAGES_PER_PAGE = 3;
 
 export default function MultiImageForm({
   userId,
+  setImageFiles,
   houseId,
-  isEditMode,
 }: MultiImageFormProp) {
-  const IMAGE_PER_PAGE = 3;
-  const HOUSE_STORAGE_URL = `${import.meta.env.VITE_SUPABASE_BUCKET_URL}/house`;
-  const [currentPageIndex, setCurrentPageIndex] = useState(0);
-  const [displayedImages, setDisplayedImages] = useState<string[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const form =
     useFormContext<Pick<HouseFormType, 'house_img' | 'representative_img'>>();
-  const selectedRepresentativeImage = form.watch('representative_img');
-  const uploadedImages = useWatch({
-    control: form.control,
-    name: 'house_img',
-  });
-  const totalImageCount = uploadedImages?.length || 0;
+  const representativeImage = form.watch('representative_img');
 
-  const createErrorToast = (message: string) =>
-    createToast('uploadImage', `${message}`, {
-      type: 'error',
-      autoClose: 3000,
-      isLoading: false,
+  const totalImageCount = previewUrls.length;
+
+	const handleIndexNavigation = (direction: 'next' | 'prev') => {
+    setCurrentIndex((prev) =>
+      direction === 'next'
+        ? Math.min(prev + 1, Math.ceil(totalImageCount / IMAGES_PER_PAGE) - 1)
+        : Math.max(prev - 1, 0)
+    );
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { files } = e.target;
+    if (!files) return;
+
+    const fileArray = Array.from(files).map((file) => {
+      const blobUrl = URL.createObjectURL(file);
+      const imageUuid = blobUrl.split('/').pop() as string;
+      return {
+        file: new File([file], imageUuid, { type: file.type }),
+        preview: blobUrl,
+        name: imageUuid,
+      };
     });
 
-  // storage에 file을 upload
-  const uploadStorage = async (file: File, fileName: string) => {
-    const { error } = await supabase.storage
-      .from(`images/house/${userId}`)
-      .upload(`temporary/${fileName}`, file);
+    setImageFiles((prev) => [...prev, ...fileArray.map((item) => item.file)]);
+    setPreviewUrls((prev) => [...prev, ...fileArray.map((item) => item.preview)]);
+    form.setValue('house_img', [...form.getValues('house_img'), ...fileArray.map((item) => item.name)]);
+  };
 
-    if (error) {
-      createErrorToast('이미지 업로드에 실패했습니다.');
+	const handleDeleteLocalImage = (imgSrc: string) => {
+    const imgName = imgSrc.split('/').pop() as string;
+    if (!imgName) return;
+
+    if (imgName === representativeImage) form.setValue('representative_img', '');
+
+    setPreviewUrls((prev) => prev.filter((url) => !url.includes(imgName)));
+    setImageFiles((prev) => prev.filter((file) => file.name !== imgName));
+
+    form.setValue(
+      'house_img',
+      form.getValues('house_img').filter((img) => img !== imgName)
+    );
+
+    if ((totalImageCount - 1) % IMAGES_PER_PAGE === 0 && currentIndex > 0) {
+      handleIndexNavigation('prev');
     }
   };
 
-  const uploadImages = async (file: File) => {
-    try {
-      const newFileName = uuid();
-      await uploadStorage(file, newFileName);
-
-      const updatedImages = [...form.getValues('house_img'), newFileName];
-      form.setValue('house_img', updatedImages);
-      form.trigger('house_img');
-
-      const newFileUrl = `${HOUSE_STORAGE_URL}/${userId}/temporary/${newFileName}`;
-      setDisplayedImages(prev => [...prev, newFileUrl]);
-    } catch (error) {
-      createErrorToast('이미지 업로드에 실패했습니다.');
-    }
-  };
-
-  // file을 입력받는 input 함수
-  const handleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const fileList = e.target.files;
-    if (fileList) {
-      const filesArray = Array.from(fileList);
-      filesArray.forEach(file => {
-        uploadImages(file);
-      });
-    }
-  };
-
-  // 라디오버튼 선택시 대표사진으로 설정하는 함수
-  const setRepresentativeImage = (imgSrc: string) => {
-    const imgName = imgSrc.split('/').slice(-1)[0];
+  const selectRepresentativeImage = (imgSrc: string) => {
+    const imgName = imgSrc.split('/').pop() as string;
     form.setValue('representative_img', imgName);
   };
 
-  // 이미지 삭제 버튼 이벤트
-  const deleteImage = async (imgSrc: string) => {
-    const imgName = imgSrc.split('/').slice(-1)[0];
-    try {
-      const { error } = await supabase.storage
+  useEffect(() => {
+    if (!representativeImage && totalImageCount > 0) {
+      form.setValue('representative_img', previewUrls[0].split('/').pop() as string);
+    }
+  }, [representativeImage, totalImageCount, previewUrls, form]);
+
+  useEffect(() => {
+    if (!houseId) return;
+
+    (async () => {
+      const { data, error } = await supabase.storage
         .from('images')
-        .remove([`house/${userId}/temporary/${imgName}`]);
-
-      if (imgName === selectedRepresentativeImage) {
-        form.setValue('representative_img', '');
-      }
-      const images = form.watch('house_img').filter(img => img !== imgName);
-      form.setValue('house_img', images);
-      form.trigger('house_img');
-
-      setDisplayedImages(prev =>
-        prev.filter(imgUrl => !imgUrl.includes(imgName)),
-      );
-      if (totalImageCount % 3 === 0 && currentPageIndex > 0) {
-        setCurrentPageIndex(currentPageIndex - 1);
-      }
+        .list(`house/${userId}/${houseId}`, { limit: 10 });
 
       if (error) {
-        createErrorToast('supabase에서 이미지를 삭제하는 데 실패했습니다.');
+        console.error('Error fetching images:', error.message);
+        return;
       }
-    } catch (error) {
-      createErrorToast('이미지 삭제에 실패했습니다.');
-    }
-  };
 
-  const handleNextImage = () => {
-    if (currentPageIndex < Math.ceil(totalImageCount / IMAGE_PER_PAGE) - 1) {
-      setCurrentPageIndex(currentPageIndex + 1);
-    }
-  };
+      if (data) {
+        const HOUSE_BUCKET_URL = `${import.meta.env.VITE_SUPABASE_BUCKET_URL}/house`;
+        const imageUrls = data.map((image) => `${HOUSE_BUCKET_URL}/${userId}/${houseId}/${image.name}`);
+        const imageNames = data.map((image) => image.name);
 
-  const handlePrevImage = () => {
-    if (currentPageIndex > 0) {
-      setCurrentPageIndex(currentPageIndex - 1);
-    }
-  };
+        setPreviewUrls(imageUrls);
+        form.setValue('house_img', imageNames);
+      }
+    })();
+  }, [userId, houseId, form]);
 
-  // 처음 이미지 업로드시 첫번째 사진을 대표사진으로 지정
-  useEffect(() => {
-    if (!selectedRepresentativeImage && totalImageCount > 0) {
-      form.setValue('representative_img', uploadedImages[0]);
-    }
-  }, [totalImageCount]);
-
-  // edit이라면 db에 있는 대표사진과 이미지배열을 가져와 Rendering 되도록 정제
-  useEffect(() => {
-    if (
-      isEditMode &&
-      selectedRepresentativeImage &&
-      !uploadedImages.includes(selectedRepresentativeImage)
-    ) {
-      const totalImages = [selectedRepresentativeImage, ...uploadedImages];
-      const houseImageUrls = totalImages.map(
-        imgName => `${HOUSE_STORAGE_URL}/${userId}/${houseId}/${imgName}`,
-      );
-      form.setValue('house_img', totalImages);
-      setDisplayedImages(houseImageUrls);
-    }
-  }, [isEditMode, selectedRepresentativeImage, uploadedImages]);
+  const paginatedImages = previewUrls.slice(
+    currentIndex * IMAGES_PER_PAGE,
+    (currentIndex + 1) * IMAGES_PER_PAGE,
+  );
 
   return (
     <Container.FlexCol className="w-full justify-center">
       <Container.FlexRow className="items-center">
-        {currentPageIndex > 0 && (
+        {currentIndex > 0 && (
           <IconButton.Ghost
             className={cn(
               'size-[1.25rem] absolute left-4 z-10 flex items-center justify-center rounded-full bg-bg opacity-60 hover:opacity-100',
@@ -172,7 +138,7 @@ export default function MultiImageForm({
               'mobile:size-4',
               's-tablet:size-6',
             )}
-            onClick={handlePrevImage}
+            onClick={() => handleIndexNavigation('prev')}
           />
         )}
         <Container.Grid
@@ -183,13 +149,13 @@ export default function MultiImageForm({
               htmlFor="upload_house_img"
               className="absolute inset-0 mb-0 flex w-full cursor-pointer items-center justify-center rounded-lg bg-brown3"
             >
-              <Icon type="camera" className="size-1/3 pointer-events-none" />
+              <Icon type="camera" className="pointer-events-none size-1/3" />
               <Input
                 type="file"
                 id="upload_house_img"
                 name="house_img"
                 className="hidden"
-                onChange={handleFiles}
+                onChange={handleFileUpload}
                 accept=".jpg, .jpeg, .png"
                 multiple
               />
@@ -205,89 +171,86 @@ export default function MultiImageForm({
               {`${totalImageCount}/10`}
             </Typography.P1>
           </div>
-          {displayedImages
-            .slice(
-              currentPageIndex * IMAGE_PER_PAGE,
-              (currentPageIndex + 1) * IMAGE_PER_PAGE,
-            )
-            .map((imgSrc, index) => (
-              <Container.FlexRow
-                key={uuid()}
-                className="relative size-full items-center"
+          {paginatedImages.map((imgSrc, index) => (
+            <Container.FlexRow
+              key={imgSrc.split('/').pop()}
+              className="relative size-full items-center"
+            >
+              <IconButton.Fill
+                className={cn(
+                  'size-[1.25rem] absolute right-0 top-0 translate-x-[20%] translate-y-[-15%] z-10 flex items-center justify-center rounded-full border border-brown3 bg-bg',
+                  'mobile:size-7',
+                  's-tablet:translate-x-[30%] s-tablet:translate-y-[-15%] s-tablet:size-9',
+                )}
+                iconType="close"
+                fill="brown1"
+                stroke="brown1"
+                iconClassName={cn(
+                  'size-[0.5rem]',
+                  'mobile:size-3',
+                  's-tablet:size-4',
+                )}
+                onClick={() => handleDeleteLocalImage(imgSrc)}
+              />
+              <Label
+                htmlFor={`image_${index}`}
+                className="absolute m-0 size-full"
               >
-                <IconButton.Fill
-                  className={cn(
-                    'size-[1.25rem] absolute right-0 top-0 translate-x-[20%] translate-y-[-15%] z-10 flex items-center justify-center rounded-full border border-brown3 bg-bg',
-                    'mobile:size-7',
-                    's-tablet:translate-x-[30%] s-tablet:translate-y-[-15%] s-tablet:size-9',
-                  )}
-                  iconType="close"
-                  fill="brown1"
-                  stroke="brown1"
-                  iconClassName={cn(
-                    'size-[0.5rem]',
-                    'mobile:size-3',
-                    's-tablet:size-4',
-                  )}
-                  onClick={() => deleteImage(imgSrc)}
-                />
-                <Label
-                  htmlFor={`image_${index}`}
-                  className="absolute m-0 size-full"
-                >
-                  <Container.FlexRow className="absolute inset-0 items-center justify-center">
-                    <Img
-                      className="size-full rounded-lg object-cover"
-                      src={imgSrc}
-                    />
-                  </Container.FlexRow>
-                  {imgSrc.includes(selectedRepresentativeImage) && (
-                    <Container.FlexRow
+                <Container.FlexRow className="absolute inset-0 items-center justify-center">
+                  <Img
+                    className="size-full rounded-lg object-cover"
+                    src={imgSrc}
+                  />
+                </Container.FlexRow>
+                {imgSrc.includes(representativeImage) && (
+                  <Container.FlexRow
+                    className={cn(
+                      'absolute bottom-0 w-full rounded-b-lg bg-brown/60 p-[0.375rem]',
+                      'mobile:p-[0.625rem]',
+                      'laptop:p-4',
+                    )}
+                  >
+                    <Typography.P1
                       className={cn(
-                        'absolute bottom-0 w-full rounded-b-lg bg-brown/60 p-[0.375rem]',
-                        'mobile:p-[0.625rem]',
-                        'laptop:p-4',
+                        'text-[0.8rem] text-bg',
+                        'mobile:text-[0.8rem]',
+                        's-tablet:text-base',
+                        'laptop:text-xl',
                       )}
                     >
-                      <Typography.P1
-                        className={cn(
-                          'text-[0.8rem] text-bg',
-                          'mobile:text-[0.8rem]',
-                          's-tablet:text-base',
-                          'laptop:text-xl',
-                        )}
-                      >
-                        대표사진
-                      </Typography.P1>
-                    </Container.FlexRow>
+                      대표사진
+                    </Typography.P1>
+                  </Container.FlexRow>
+                )}
+                <Input
+                  type="radio"
+                  id={`image_${index}`}
+                  className={cn(
+                    'absolute bottom-[0.375rem] right-[0.5rem] z-10 size-[0.875rem] accent-point',
+                    'mobile:bottom-[0.625rem] mobile:right-[0.5rem] mobile:size-4',
+                    's-tablet:bottom-3 s-tablet:right-3 s-tablet:size-5',
+                    'laptop:bottom-4 laptop:right-4 laptop:size-6',
                   )}
-                  <Input
-                    type="radio"
-                    id={`image_${index}`}
-                    className={cn(
-                      'absolute bottom-[0.375rem] right-[0.5rem] z-10 size-[0.875rem] accent-point',
-                      'mobile:bottom-[0.625rem] mobile:right-[0.5rem] mobile:size-4',
-                      's-tablet:bottom-3 s-tablet:right-3 s-tablet:size-5',
-                      'laptop:bottom-4 laptop:right-4 laptop:size-6',
-                    )}
-                    checked={imgSrc.includes(selectedRepresentativeImage)}
-                    onChange={() => setRepresentativeImage(imgSrc)}
-                  />
-                </Label>
-              </Container.FlexRow>
-            ))}
-          {totalImageCount < IMAGE_PER_PAGE &&
-            Array.from({ length: IMAGE_PER_PAGE - totalImageCount }).map(() => (
-              <Label
-                key={uuid()}
-                htmlFor="house_img"
-                className="mb-0 flex aspect-square w-full cursor-pointer items-center justify-center rounded-lg bg-brown3"
-              />
-            ))}
+                  checked={imgSrc.includes(representativeImage)}
+                  onChange={() => selectRepresentativeImage(imgSrc)}
+                />
+              </Label>
+            </Container.FlexRow>
+          ))}
+          {totalImageCount < IMAGES_PER_PAGE &&
+            Array.from({ length: IMAGES_PER_PAGE - totalImageCount }).map(
+              (_, index) => (
+                <Label
+                  // eslint-disable-next-line react/no-array-index-key
+                  key={index}
+                  htmlFor="house_img"
+                  className="mb-0 flex aspect-square w-full cursor-pointer items-center justify-center rounded-lg bg-brown3"
+                />
+              ),
+            )}
         </Container.Grid>
-        {totalImageCount > IMAGE_PER_PAGE &&
-          currentPageIndex <
-            Math.ceil(totalImageCount / IMAGE_PER_PAGE) - 1 && (
+        {totalImageCount > IMAGES_PER_PAGE &&
+          currentIndex < Math.ceil(totalImageCount / IMAGES_PER_PAGE) - 1 && (
             <IconButton.Ghost
               className={cn(
                 'size-[1.25rem] absolute right-4 z-10 flex items-center justify-center rounded-full bg-bg opacity-60 hover:opacity-100',
@@ -302,7 +265,7 @@ export default function MultiImageForm({
                 'mobile:size-4',
                 's-tablet:size-6',
               )}
-              onClick={handleNextImage}
+              onClick={() => handleIndexNavigation('next')}
             />
           )}
       </Container.FlexRow>
