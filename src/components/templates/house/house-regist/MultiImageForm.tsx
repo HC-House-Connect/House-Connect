@@ -34,11 +34,11 @@ export default function MultiImageForm({
 
   const totalImageCount = previewUrls.length;
 
-	const handleIndexNavigation = (direction: 'next' | 'prev') => {
-    setCurrentIndex((prev) =>
+  const handleIndexNavigation = (direction: 'next' | 'prev') => {
+    setCurrentIndex(prev =>
       direction === 'next'
         ? Math.min(prev + 1, Math.ceil(totalImageCount / IMAGES_PER_PAGE) - 1)
-        : Math.max(prev - 1, 0)
+        : Math.max(prev - 1, 0),
     );
   };
 
@@ -46,7 +46,7 @@ export default function MultiImageForm({
     const { files } = e.target;
     if (!files) return;
 
-    const fileArray = Array.from(files).map((file) => {
+    const fileArray = Array.from(files).map(file => {
       const blobUrl = URL.createObjectURL(file);
       const imageUuid = blobUrl.split('/').pop() as string;
       return {
@@ -56,23 +56,27 @@ export default function MultiImageForm({
       };
     });
 
-    setImageFiles((prev) => [...prev, ...fileArray.map((item) => item.file)]);
-    setPreviewUrls((prev) => [...prev, ...fileArray.map((item) => item.preview)]);
-    form.setValue('house_img', [...form.getValues('house_img'), ...fileArray.map((item) => item.name)]);
+    setImageFiles(prev => [...prev, ...fileArray.map(item => item.file)]);
+    setPreviewUrls(prev => [...prev, ...fileArray.map(item => item.preview)]);
+    form.setValue('house_img', [
+      ...form.getValues('house_img'),
+      ...fileArray.map(item => item.name),
+    ]);
   };
 
-	const handleDeleteLocalImage = (imgSrc: string) => {
+  const handleDeleteLocalImage = (imgSrc: string) => {
     const imgName = imgSrc.split('/').pop() as string;
     if (!imgName) return;
 
-    if (imgName === representativeImage) form.setValue('representative_img', '');
+    if (imgName === representativeImage)
+      form.setValue('representative_img', '');
 
-    setPreviewUrls((prev) => prev.filter((url) => !url.includes(imgName)));
-    setImageFiles((prev) => prev.filter((file) => file.name !== imgName));
+    setPreviewUrls(prev => prev.filter(url => !url.includes(imgName)));
+    setImageFiles(prev => prev.filter(file => file.name !== imgName));
 
     form.setValue(
       'house_img',
-      form.getValues('house_img').filter((img) => img !== imgName)
+      form.getValues('house_img').filter(img => img !== imgName),
     );
 
     if ((totalImageCount - 1) % IMAGES_PER_PAGE === 0 && currentIndex > 0) {
@@ -87,9 +91,12 @@ export default function MultiImageForm({
 
   useEffect(() => {
     if (!representativeImage && totalImageCount > 0) {
-      form.setValue('representative_img', previewUrls[0].split('/').pop() as string);
+      form.setValue(
+        'representative_img',
+        previewUrls[0].split('/').pop() as string,
+      );
     }
-  }, [representativeImage, totalImageCount, previewUrls, form]);
+  }, [representativeImage, totalImageCount]);
 
   useEffect(() => {
     if (!houseId) return;
@@ -106,14 +113,16 @@ export default function MultiImageForm({
 
       if (data) {
         const HOUSE_BUCKET_URL = `${import.meta.env.VITE_SUPABASE_BUCKET_URL}/house`;
-        const imageUrls = data.map((image) => `${HOUSE_BUCKET_URL}/${userId}/${houseId}/${image.name}`);
-        const imageNames = data.map((image) => image.name);
+        const imageUrls = data.map(
+          image => `${HOUSE_BUCKET_URL}/${userId}/${houseId}/${image.name}`,
+        );
+        const imageNames = data.map(image => image.name);
 
         setPreviewUrls(imageUrls);
         form.setValue('house_img', imageNames);
       }
     })();
-  }, [userId, houseId, form]);
+  }, [userId, houseId]);
 
   const paginatedImages = previewUrls.slice(
     currentIndex * IMAGES_PER_PAGE,

@@ -130,26 +130,41 @@ export const useFetchProfileData = (userId: string) => {
   };
 };
 
-const moveImagesToStorage = async (userId: string, houseId: string) => {
-  const { data: images, error } = await supabase.storage
-    .from('images')
-    .list(`house/${userId}/temp`, { limit: 10 });
-
+export const getImageList = async (path: string) => {
+  const { data, error } = await supabase.storage.from('images').list(path);
   if (error)
-    throw new Error(`이미지를 가져오는 데 실패했습니다.: ${error.message}`);
+    throw new Error(
+      `이미지를 가져오는 데 실패했습니다. 경로: ${path}, 에러: ${error.message}`,
+    );
+  return data;
+};
 
+export const moveImage = async (source: string, destination: string) => {
+  const { error } = await supabase.storage
+    .from('images')
+    .move(source, destination);
+  if (error)
+    throw new Error(
+      `이미지 이동 중 문제가 발생했습니다. 소스: ${source}, 목적지: ${destination}, 에러: ${error.message}`,
+    );
+};
+
+export const removeImage = async (path: string) => {
+  const { error } = await supabase.storage.from('images').remove([path]);
+  if (error)
+    throw new Error(
+      `이미지 삭제 중 문제가 발생했습니다. 경로: ${path}, 에러: ${error.message}`,
+    );
+};
+
+const moveImagesToStorage = async (userId: string, houseId: string) => {
   const tempPath = `house/${userId}/temp`;
   const movePath = `house/${userId}/${houseId}`;
 
-  const movePromises = images.map(async imgObj => {
-    const { error: moveError } = await supabase.storage
-      .from('images')
-      .move(`${tempPath}/${imgObj.name}`, `${movePath}/${imgObj.name}`);
+  const images = await getImageList(tempPath);
 
-    if (moveError)
-      throw new Error(
-        `이미지를 업로드하던 중 문제가 발생했습니다.: ${moveError.message}`,
-      );
+  const movePromises = images.map(async imgObj => {
+    moveImage(`${tempPath}/${imgObj.name}`, `${movePath}/${imgObj.name}`);
   });
 
   await Promise.all(movePromises);
@@ -160,27 +175,11 @@ const deleteUnusedImagesFromStorage = async (
   houseId: string,
   images: string[],
 ) => {
-  const { data, error } = await supabase.storage
-    .from('images')
-    .list(`house/${userId}/${houseId}`, {
-      limit: 10,
-      offset: 0,
-    });
+  const storageImages = await getImageList(`house/${userId}/${houseId}`);
 
-  if (error)
-    throw new Error(`이미지를 가져오는 데 실패했습니다.:${error.message}`);
-
-  const storageImages = data.map(img => img.name);
-  const removedImages = storageImages.filter(img => !images.includes(img));
+  const removedImages = storageImages.filter(img => !images.includes(img.name));
   const removePromises = removedImages.map(async img => {
-    const { error: removeError } = await supabase.storage
-      .from('images')
-      .remove([`house/${userId}/${houseId}/${img}`]);
-
-    if (removeError)
-      throw new Error(
-        `이미지 삭제 중 문제가 발생했습니다.: ${removeError.message}`,
-      );
+    removeImage(`house/${userId}/${houseId}/${img}`);
   });
 
   await Promise.all(removePromises);
