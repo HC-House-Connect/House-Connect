@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 
 import cn from '@/libs/cn';
@@ -7,11 +8,13 @@ import isRoutePathMatched from '@/libs/isRoutePathMatched';
 import Container from '@/components/atoms/Container';
 import HouseListTopSection from '@/components/templates/house/house-list/HouseListTopSection';
 import Loading from '@/components/pages/maintenance/Loading';
+import useScrollTo from '@/hooks/useScroll';
 
 export default function LayoutTemplate() {
   // * supabase authListener를 등록함과 동시에 isLogin상태를 가져오기 위함
   const [session, isInitializingSession] = useAuthState();
   const location = useLocation();
+  const houseListMainRef = useRef<HTMLDivElement>(null);
   const isSignPath = isRoutePathMatched(location.pathname, [
     'sign',
     'signIn',
@@ -49,6 +52,11 @@ export default function LayoutTemplate() {
     return <Loading text="로그인 정보 확인 중..." />;
   }
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const onClickScrollButton = useScrollTo({
+    ref: houseListMainRef,
+  });
+
   return (
     <>
       <Header
@@ -57,8 +65,8 @@ export default function LayoutTemplate() {
       />
       {isHouseListPath ? (
         <Container.FlexCol className="min-h-screen w-full bg-bg-orange">
-          <HouseListTopSection />
-          <Container.FlexRow className="bg-bg-orange">
+          <HouseListTopSection onClickScrollButton={onClickScrollButton} />
+          <Container.FlexRow ref={houseListMainRef} className="bg-bg-orange">
             <main
               className={cn(
                 'flex flex-col relative w-full mx-auto pt-[2rem] pb-16 bg-transparent',

@@ -5,10 +5,12 @@ import IconButton from '@/components/molecules/IconButton';
 import cn from '@/libs/cn';
 
 type HouseListTopSectionProps = {
+  onClickScrollButton: () => void;
   className?: string;
 };
 
 export default function HouseListTopSection({
+  onClickScrollButton,
   className,
 }: HouseListTopSectionProps) {
   return (
@@ -59,6 +61,7 @@ export default function HouseListTopSection({
           <IconButton.Ghost
             iconType="down-arrow"
             iconClassName="h-7 w-auto s-tablet:size-8"
+            onClick={onClickScrollButton}
           />
           <Typography.SubTitle1
             lang="en"
