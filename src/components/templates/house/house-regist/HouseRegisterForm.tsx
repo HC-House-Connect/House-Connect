@@ -215,9 +215,9 @@ export default function HouseRegisterForm({ form }: HouseRegistFormProps) {
                 <Typography.P1 className="text-brown">임시저장</Typography.P1>
               </Button.Outline>
             </Container.FlexRow>
-            <Carousel order={currentStep} className="w-full grow">
+            <Carousel.Focusable order={currentStep} className="w-full grow">
               {carouselTemplates}
-            </Carousel>
+            </Carousel.Focusable>
           </Container.FlexCol>
         </Container.FlexCol>
       </form>

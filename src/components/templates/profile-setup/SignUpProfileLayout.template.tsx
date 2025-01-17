@@ -2,6 +2,7 @@
 import { Children, ReactNode, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFormContext } from 'react-hook-form';
+
 import { routePaths } from '@/constants/route';
 import Container from '@/components/atoms/Container';
 import IconButton from '@/components/molecules/IconButton';
@@ -170,7 +171,9 @@ export default function SignUpProfileLayoutTemplate(
           ))}
         </Container.FlexCol>
         <Container.FlexCol className="size-full h-[calc(100vh-9.25rem)] pb-[10rem]">
-          <Carousel order={currentStep}>{children}</Carousel>
+          <Carousel.NonFocusable order={currentStep}>
+            {children}
+          </Carousel.NonFocusable>
         </Container.FlexCol>
       </Container.FlexRow>
       <Container.FlexRow className="absolute bottom-0 right-0 z-20 w-full justify-end gap-x-3 bg-bg pb-[3.75rem] pr-8 pt-8">
