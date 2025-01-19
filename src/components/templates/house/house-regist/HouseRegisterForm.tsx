@@ -126,11 +126,11 @@ export default function HouseRegisterForm({ form }: HouseRegistFormProps) {
       house_type: formData.house_type,
       rental_type: formData.rental_type,
       floor: formData.floor,
-      house_size: Number(formData.house_size) || -1,
-      room_num: Number(formData.room_num) || -1,
-      deposit_price: Number(formData.deposit_price) || -1,
-      monthly_price: Number(formData.monthly_price) || -1,
-      manage_price: Number(formData.manage_price) || -1,
+      house_size: Number(formData.house_size),
+      room_num: Number(formData.room_num),
+      deposit_price: Number(formData.deposit_price),
+      monthly_price: Number(formData.monthly_price),
+      manage_price: Number(formData.manage_price),
       house_appeal: formData.house_appeal,
       term: formData.term,
       describe: formData.describe,
@@ -153,13 +153,50 @@ export default function HouseRegisterForm({ form }: HouseRegistFormProps) {
     const isValid = await form.trigger();
     if (isValid) {
       setCurrentStep(prev => prev + 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0 });
       setLocationError(false);
-    } else if (
-      form.getValues('region') === '지역' ||
-      form.getValues('district') === '시, 구'
-    ) {
-      setLocationError(true);
+    } else {
+      const fieldOrder = [
+        'house_img',
+        'post_title',
+        'region',
+        'district',
+        'house_size',
+        'room_num',
+        'deposit_price',
+        'monthly_price',
+        'manage_price',
+        'house_appeal',
+        'describe',
+      ] as const;
+      const firstErrorField = fieldOrder.find(
+        field => form.formState.errors[field as keyof HouseFormType],
+      );
+
+      if (firstErrorField) {
+        form.setFocus(firstErrorField as keyof HouseFormType);
+      }
+
+      if (firstErrorField === 'house_img') {
+        const labelElement = document.querySelector(
+          'label[for="upload_house_img"]',
+        ) as HTMLElement;
+        labelElement.focus();
+      }
+
+      if (
+        form.getValues('region') === '지역' ||
+        form.getValues('district') === '시, 구'
+      ) {
+        setLocationError(true);
+      }
+
+      if (firstErrorField === 'region' || firstErrorField === 'district') {
+        const errorTextElement = document.getElementById(
+          'region-error',
+        ) as HTMLElement;
+        errorTextElement.focus();
+      }
     }
   };
 
@@ -171,6 +208,7 @@ export default function HouseRegisterForm({ form }: HouseRegistFormProps) {
 
   const onClickSaveTemporary = () => {
     const formData = form.getValues();
+    form.trigger('post_title');
     onSaveHouse(formData, 0);
   };
 

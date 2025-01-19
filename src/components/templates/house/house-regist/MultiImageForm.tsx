@@ -155,8 +155,9 @@ export default function MultiImageForm({
         >
           <div className="relative aspect-square w-full">
             <Label
+              tabIndex={0}
               htmlFor="upload_house_img"
-              className="absolute inset-0 mb-0 flex w-full cursor-pointer items-center justify-center rounded-lg bg-brown3"
+              className="absolute inset-0 mb-0 flex w-full cursor-pointer items-center justify-center rounded-lg bg-brown3 focus:ring-2 focus:ring-point"
             >
               <Icon type="camera" className="pointer-events-none size-1/3" />
               <Input

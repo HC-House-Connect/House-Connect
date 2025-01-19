@@ -172,6 +172,7 @@ export default function HouseRegisterTemplate1({
               type="text"
               name="post_title"
               placeholder="제목을 작성해주세요"
+              tabIndex={0}
             />
           </HouseFormRow>
           <HouseFormRow
@@ -192,7 +193,11 @@ export default function HouseRegisterTemplate1({
               )}
               <DistrictSelector />
               {location === '' && locationError && (
-                <Typography.Span2 className="mt-[8px] block text-point">
+                <Typography.Span2
+                  id="region-error"
+                  className="mt-[8px] block text-point"
+                  tabIndex={-1}
+                >
                   주거지의 지역을 선택해주세요.
                 </Typography.Span2>
               )}
@@ -264,6 +269,7 @@ export default function HouseRegisterTemplate1({
                   className="w-[4.5rem] p-2"
                   placeholder="12"
                   {...form.register('house_size', { valueAsNumber: true })}
+                  tabIndex={0}
                 />
                 <div className="flex gap-[18px]">
                   <Typography.P2>평</Typography.P2>
@@ -275,6 +281,7 @@ export default function HouseRegisterTemplate1({
                   className="w-[4.5rem] p-2"
                   placeholder="1"
                   {...form.register('room_num', { valueAsNumber: true })}
+                  tabIndex={0}
                 />
                 <span>개</span>
               </Container.FlexRow>
@@ -324,6 +331,7 @@ export default function HouseRegisterTemplate1({
                   className="w-[6rem]"
                   {...form.register('deposit_price', { valueAsNumber: true })}
                   placeholder="500"
+                  tabIndex={0}
                 />
                 <Typography.P2 className="whitespace-nowrap text-brown">
                   만원
@@ -343,6 +351,7 @@ export default function HouseRegisterTemplate1({
                   className="w-[6rem]"
                   {...form.register('monthly_price', { valueAsNumber: true })}
                   placeholder="50"
+                  tabIndex={0}
                 />
                 <Typography.P2 className="whitespace-nowrap text-brown">
                   만원
@@ -363,6 +372,7 @@ export default function HouseRegisterTemplate1({
                     className="w-[6rem]"
                     {...form.register('manage_price', { valueAsNumber: true })}
                     placeholder="30"
+                    tabIndex={0}
                   />
                   <Typography.P2 className="whitespace-nowrap text-brown">
                     만원
